@@ -31,7 +31,7 @@ def to_tensor(data):
     elif isinstance(data, float):
         return torch.FloatTensor([data])
     else:
-        raise TypeError(f'type {type(data)} cannot be converted to tensor.')
+        raise TypeError(f"type {type(data)} cannot be converted to tensor.")
 
 
 @PIPELINES.register_module()
@@ -60,7 +60,7 @@ class ToTensor:
         return results
 
     def __repr__(self):
-        return self.__class__.__name__ + f'(keys={self.keys})'
+        return self.__class__.__name__ + f"(keys={self.keys})"
 
 
 @PIPELINES.register_module()
@@ -97,7 +97,7 @@ class ImageToTensor:
         return results
 
     def __repr__(self):
-        return self.__class__.__name__ + f'(keys={self.keys})'
+        return self.__class__.__name__ + f"(keys={self.keys})"
 
 
 @PIPELINES.register_module()
@@ -128,8 +128,7 @@ class Transpose:
         return results
 
     def __repr__(self):
-        return self.__class__.__name__ + \
-               f'(keys={self.keys}, order={self.order})'
+        return self.__class__.__name__ + f"(keys={self.keys}, order={self.order})"
 
 
 @PIPELINES.register_module()
@@ -144,9 +143,9 @@ class ToDataContainer:
             dict(key='gt_labels'))``.
     """
 
-    def __init__(self,
-                 fields=(dict(key='img', stack=True), dict(key='gt_bboxes'),
-                         dict(key='gt_labels'))):
+    def __init__(
+        self, fields=(dict(key="img", stack=True), dict(key="gt_bboxes"), dict(key="gt_labels"))
+    ):
         self.fields = fields
 
     def __call__(self, results):
@@ -163,12 +162,12 @@ class ToDataContainer:
 
         for field in self.fields:
             field = field.copy()
-            key = field.pop('key')
+            key = field.pop("key")
             results[key] = DC(results[key], **field)
         return results
 
     def __repr__(self):
-        return self.__class__.__name__ + f'(fields={self.fields})'
+        return self.__class__.__name__ + f"(fields={self.fields})"
 
 
 @PIPELINES.register_module()
@@ -197,9 +196,7 @@ class DefaultFormatBundle:
             will be set to 0 by default, which should be 255.
     """
 
-    def __init__(self,
-                 img_to_float=True,
-                 pad_val=dict(img=0, masks=0, seg=255)):
+    def __init__(self, img_to_float=True, pad_val=dict(img=0, masks=0, seg=255)):
         self.img_to_float = img_to_float
         self.pad_val = pad_val
 
@@ -214,8 +211,8 @@ class DefaultFormatBundle:
                 default bundle.
         """
 
-        if 'img' in results:
-            img = results['img']
+        if "img" in results:
+            img = results["img"]
             if self.img_to_float is True and img.dtype == np.uint8:
                 # Normally, image is of uint8 type without normalization.
                 # At this time, it needs to be forced to be converted to
@@ -238,22 +235,21 @@ class DefaultFormatBundle:
                 img = to_tensor(img)
             else:
                 img = to_tensor(img).permute(2, 0, 1).contiguous()
-            results['img'] = DC(
-                img, padding_value=self.pad_val['img'], stack=True)
-        for key in ['proposals', 'gt_bboxes', 'gt_bboxes_ignore', 'gt_labels']:
+            results["img"] = DC(img, padding_value=self.pad_val["img"], stack=True)
+        for key in ["proposals", "gt_bboxes", "gt_bboxes_ignore", "gt_labels"]:
             if key not in results:
                 continue
             results[key] = DC(to_tensor(results[key]))
-        if 'gt_masks' in results:
-            results['gt_masks'] = DC(
-                results['gt_masks'],
-                padding_value=self.pad_val['masks'],
-                cpu_only=True)
-        if 'gt_semantic_seg' in results:
-            results['gt_semantic_seg'] = DC(
-                to_tensor(results['gt_semantic_seg'][None, ...]),
-                padding_value=self.pad_val['seg'],
-                stack=True)
+        if "gt_masks" in results:
+            results["gt_masks"] = DC(
+                results["gt_masks"], padding_value=self.pad_val["masks"], cpu_only=True
+            )
+        if "gt_semantic_seg" in results:
+            results["gt_semantic_seg"] = DC(
+                to_tensor(results["gt_semantic_seg"][None, ...]),
+                padding_value=self.pad_val["seg"],
+                stack=True,
+            )
         return results
 
     def _add_default_meta_keys(self, results):
@@ -269,21 +265,120 @@ class DefaultFormatBundle:
         Returns:
             results (dict): Updated result dict contains the data to convert.
         """
-        img = results['img']
-        results.setdefault('pad_shape', img.shape)
-        results.setdefault('scale_factor', 1.0)
+        img = results["img"]
+        results.setdefault("pad_shape", img.shape)
+        results.setdefault("scale_factor", 1.0)
         num_channels = 1 if len(img.shape) < 3 else img.shape[2]
         results.setdefault(
-            'img_norm_cfg',
+            "img_norm_cfg",
             dict(
                 mean=np.zeros(num_channels, dtype=np.float32),
                 std=np.ones(num_channels, dtype=np.float32),
-                to_rgb=False))
+                to_rgb=False,
+            ),
+        )
         return results
 
     def __repr__(self):
-        return self.__class__.__name__ + \
-               f'(img_to_float={self.img_to_float})'
+        return self.__class__.__name__ + f"(img_to_float={self.img_to_float})"
+
+
+@PIPELINES.register_module()
+class LOFTFormatBundle(DefaultFormatBundle):
+    """LOFT formatting bundle."""
+
+    def __call__(self, results):
+        """Call function to transform and format common fields in results.
+
+        Args:
+            results (dict): Result dict contains the data to convert.
+
+        Returns:
+            dict: The result dict contains the data that is formatted with \
+                default bundle.
+        """
+
+        if "img" in results:
+            img = results["img"]
+            if self.img_to_float is True and img.dtype == np.uint8:
+                # Normally, image is of uint8 type without normalization.
+                # At this time, it needs to be forced to be converted to
+                # flot32, otherwise the model training and inference
+                # will be wrong. Only used for YOLOX currently .
+                img = img.astype(np.float32)
+            # add default meta keys
+            results = self._add_default_meta_keys(results)
+            if len(img.shape) < 3:
+                img = np.expand_dims(img, -1)
+            # To improve the computational speed by by 3-5 times, apply:
+            # If image is not contiguous, use
+            # `numpy.transpose()` followed by `numpy.ascontiguousarray()`
+            # If image is already contiguous, use
+            # `torch.permute()` followed by `torch.contiguous()`
+            # Refer to https://github.com/open-mmlab/mmdetection/pull/9533
+            # for more details
+            if not img.flags.c_contiguous:
+                img = np.ascontiguousarray(img.transpose(2, 0, 1))
+                img = to_tensor(img)
+            else:
+                img = to_tensor(img).permute(2, 0, 1).contiguous()
+            results["img"] = DC(img, padding_value=self.pad_val["img"], stack=True)
+        # for key in ['proposals', 'gt_bboxes', 'gt_bboxes_ignore', 'gt_labels']:
+        for key in [
+            "proposals",
+            "gt_bboxes",
+            "gt_bboxes_ignore",
+            "gt_labels",
+            "gt_offsets",
+            "gt_heights",
+            "gt_nadir_angles",
+            "gt_offset_angles",
+            "gt_rbboxes",
+            "gt_roof_bboxes",
+            "gt_footprint_bboxes",
+            "gt_only_footprint_flag",
+            "gt_roof_masks",
+            "gt_is_semi_supervised_sample",
+            "gt_is_valid_height_sample",
+            "height_mask_shape",
+            "image_scale_footprint_mask_shape",
+            # "gt_footprint_masks",
+        ]:
+            if key not in results:
+                continue
+            results[key] = DC(to_tensor(results[key]))
+        if "gt_masks" in results:
+            results["gt_masks"] = DC(
+                results["gt_masks"], padding_value=self.pad_val["masks"], cpu_only=True
+            )
+        if "gt_roof_masks" in results:
+            results["gt_roof_masks"] = DC(results["gt_roof_masks"], cpu_only=True)
+        if "gt_height_masks" in results:
+            results["gt_height_masks"] = DC(results["gt_height_masks"], cpu_only=True)
+        if "gt_footprint_masks" in results:
+            results["gt_footprint_masks"] = DC(results["gt_footprint_masks"], cpu_only=True)
+        if "gt_image_scale_footprint_masks" in results:
+            results["gt_image_scale_footprint_masks"] = DC(
+                results["gt_image_scale_footprint_masks"], cpu_only=True
+            )
+        if "gt_footprint_polygons" in results:
+            results["gt_footprint_polygons"] = DC(results["gt_footprint_polygons"], cpu_only=True)
+        if "gt_semantic_seg" in results:
+            results["gt_semantic_seg"] = DC(
+                to_tensor(results["gt_semantic_seg"][None, ...]),
+                padding_value=self.pad_val["seg"],
+                stack=True,
+            )
+        if "gt_edge_maps" in results:
+            results["gt_edge_maps"] = DC(results["gt_edge_maps"], cpu_only=True)
+        if "gt_side_face_maps" in results:
+            results["gt_side_face_maps"] = DC(results["gt_side_face_maps"], cpu_only=True)
+        if "gt_offset_field" in results:
+            results["gt_offset_field"] = DC(
+                to_tensor(results["gt_offset_field"][None, ...]), stack=True
+            )
+
+        return results
 
 
 @PIPELINES.register_module()
@@ -326,11 +421,21 @@ class Collect:
             'img_norm_cfg')``
     """
 
-    def __init__(self,
-                 keys,
-                 meta_keys=('filename', 'ori_filename', 'ori_shape',
-                            'img_shape', 'pad_shape', 'scale_factor', 'flip',
-                            'flip_direction', 'img_norm_cfg')):
+    def __init__(
+        self,
+        keys,
+        meta_keys=(
+            "filename",
+            "ori_filename",
+            "ori_shape",
+            "img_shape",
+            "pad_shape",
+            "scale_factor",
+            "flip",
+            "flip_direction",
+            "img_norm_cfg",
+        ),
+    ):
         self.keys = keys
         self.meta_keys = meta_keys
 
@@ -352,14 +457,13 @@ class Collect:
         img_meta = {}
         for key in self.meta_keys:
             img_meta[key] = results[key]
-        data['img_metas'] = DC(img_meta, cpu_only=True)
+        data["img_metas"] = DC(img_meta, cpu_only=True)
         for key in self.keys:
             data[key] = results[key]
         return data
 
     def __repr__(self):
-        return self.__class__.__name__ + \
-               f'(keys={self.keys}, meta_keys={self.meta_keys})'
+        return self.__class__.__name__ + f"(keys={self.keys}, meta_keys={self.meta_keys})"
 
 
 @PIPELINES.register_module()
@@ -400,4 +504,4 @@ class WrapFieldsToLists:
         return results
 
     def __repr__(self):
-        return f'{self.__class__.__name__}()'
+        return f"{self.__class__.__name__}()"

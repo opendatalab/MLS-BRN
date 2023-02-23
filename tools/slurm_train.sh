@@ -2,15 +2,25 @@
 
 set -x
 
-PARTITION=$1
-JOB_NAME=$2
-CONFIG=$3
-WORK_DIR=$4
-GPUS=${GPUS:-8}
-GPUS_PER_NODE=${GPUS_PER_NODE:-8}
-CPUS_PER_TASK=${CPUS_PER_TASK:-5}
-SRUN_ARGS=${SRUN_ARGS:-""}
-PY_ARGS=${@:5}
+# GPUS=1
+GPUS=2
+# GPUS=4
+CPUS_PER_TASK=5
+GPUS_PER_NODE=$GPUS
+SRUN_ARGS=""
+# SRUN_ARGS="--debug"
+PARTITION="PARTITION"
+
+
+MODEL=$1
+CONFIG=$2
+PY_ARGS=${@:3:$#-3}
+
+TIME=$(date "+%Y%m%d-%H%M%S")
+
+JOB_NAME=${CONFIG}[${TIME}]
+JOB_DIR="work_dirs/${JOB_NAME}"
+CONFIG_FILE="configs/${MODEL}/${CONFIG}.py"
 
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 srun -p ${PARTITION} \
@@ -21,4 +31,7 @@ srun -p ${PARTITION} \
     --cpus-per-task=${CPUS_PER_TASK} \
     --kill-on-bad-exit=1 \
     ${SRUN_ARGS} \
-    python -u tools/train.py ${CONFIG} --work-dir=${WORK_DIR} --launcher="slurm" ${PY_ARGS}
+    python -u tools/train.py --config=${CONFIG_FILE} --work-dir=${JOB_DIR} --launcher="slurm" ${PY_ARGS} --no-validate
+
+# ==================== The command to call this shell script ====================
+# ./tools/slurm_train.sh loft_foahfm loft_foahfm_r50_fpn_2x_bonai

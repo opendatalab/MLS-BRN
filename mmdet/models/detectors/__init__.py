@@ -18,6 +18,7 @@ from .grid_rcnn import GridRCNN
 from .htc import HybridTaskCascade
 from .kd_one_stage import KnowledgeDistillationSingleStageDetector
 from .lad import LAD
+from .loft import LOFT
 from .mask2former import Mask2Former
 from .mask_rcnn import MaskRCNN
 from .mask_scoring_rcnn import MaskScoringRCNN
@@ -46,13 +47,50 @@ from .yolof import YOLOF
 from .yolox import YOLOX
 
 __all__ = [
-    'ATSS', 'BaseDetector', 'SingleStageDetector', 'TwoStageDetector', 'RPN',
-    'KnowledgeDistillationSingleStageDetector', 'FastRCNN', 'FasterRCNN',
-    'MaskRCNN', 'CascadeRCNN', 'HybridTaskCascade', 'RetinaNet', 'FCOS',
-    'GridRCNN', 'MaskScoringRCNN', 'RepPointsDetector', 'FOVEA', 'FSAF',
-    'NASFCOS', 'PointRend', 'GFL', 'CornerNet', 'PAA', 'YOLOV3', 'YOLACT',
-    'VFNet', 'DETR', 'TridentFasterRCNN', 'SparseRCNN', 'SCNet', 'SOLO',
-    'SOLOv2', 'DeformableDETR', 'AutoAssign', 'YOLOF', 'CenterNet', 'YOLOX',
-    'TwoStagePanopticSegmentor', 'PanopticFPN', 'QueryInst', 'LAD', 'TOOD',
-    'MaskFormer', 'DDOD', 'Mask2Former'
+    "ATSS",
+    "BaseDetector",
+    "SingleStageDetector",
+    "TwoStageDetector",
+    "RPN",
+    "KnowledgeDistillationSingleStageDetector",
+    "FastRCNN",
+    "FasterRCNN",
+    "MaskRCNN",
+    "CascadeRCNN",
+    "HybridTaskCascade",
+    "RetinaNet",
+    "FCOS",
+    "GridRCNN",
+    "MaskScoringRCNN",
+    "RepPointsDetector",
+    "FOVEA",
+    "FSAF",
+    "NASFCOS",
+    "PointRend",
+    "GFL",
+    "CornerNet",
+    "PAA",
+    "YOLOV3",
+    "YOLACT",
+    "VFNet",
+    "DETR",
+    "TridentFasterRCNN",
+    "SparseRCNN",
+    "SCNet",
+    "SOLO",
+    "SOLOv2",
+    "DeformableDETR",
+    "AutoAssign",
+    "YOLOF",
+    "CenterNet",
+    "YOLOX",
+    "TwoStagePanopticSegmentor",
+    "PanopticFPN",
+    "QueryInst",
+    "LAD",
+    "TOOD",
+    "MaskFormer",
+    "DDOD",
+    "Mask2Former",
+    "LOFT",
 ]

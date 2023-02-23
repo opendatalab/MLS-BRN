@@ -1,5 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import os.path as osp
+from copy import deepcopy
 
 import mmcv
 import numpy as np
@@ -34,11 +35,13 @@ class LoadImageFromFile:
             Defaults to ``dict(backend='disk')``.
     """
 
-    def __init__(self,
-                 to_float32=False,
-                 color_type='color',
-                 channel_order='bgr',
-                 file_client_args=dict(backend='disk')):
+    def __init__(
+        self,
+        to_float32=False,
+        color_type="color",
+        channel_order="bgr",
+        file_client_args=dict(backend="disk"),
+    ):
         self.to_float32 = to_float32
         self.color_type = color_type
         self.channel_order = channel_order
@@ -58,32 +61,32 @@ class LoadImageFromFile:
         if self.file_client is None:
             self.file_client = mmcv.FileClient(**self.file_client_args)
 
-        if results['img_prefix'] is not None:
-            filename = osp.join(results['img_prefix'],
-                                results['img_info']['filename'])
+        if results["img_prefix"] is not None:
+            filename = osp.join(results["img_prefix"], results["img_info"]["filename"])
         else:
-            filename = results['img_info']['filename']
+            filename = results["img_info"]["filename"]
 
         img_bytes = self.file_client.get(filename)
-        img = mmcv.imfrombytes(
-            img_bytes, flag=self.color_type, channel_order=self.channel_order)
+        img = mmcv.imfrombytes(img_bytes, flag=self.color_type, channel_order=self.channel_order)
         if self.to_float32:
             img = img.astype(np.float32)
 
-        results['filename'] = filename
-        results['ori_filename'] = results['img_info']['filename']
-        results['img'] = img
-        results['img_shape'] = img.shape
-        results['ori_shape'] = img.shape
-        results['img_fields'] = ['img']
+        results["filename"] = filename
+        results["ori_filename"] = results["img_info"]["filename"]
+        results["img"] = img
+        results["img_shape"] = img.shape
+        results["ori_shape"] = img.shape
+        results["img_fields"] = ["img"]
         return results
 
     def __repr__(self):
-        repr_str = (f'{self.__class__.__name__}('
-                    f'to_float32={self.to_float32}, '
-                    f"color_type='{self.color_type}', "
-                    f"channel_order='{self.channel_order}', "
-                    f'file_client_args={self.file_client_args})')
+        repr_str = (
+            f"{self.__class__.__name__}("
+            f"to_float32={self.to_float32}, "
+            f"color_type='{self.color_type}', "
+            f"channel_order='{self.channel_order}', "
+            f"file_client_args={self.file_client_args})"
+        )
         return repr_str
 
 
@@ -106,16 +109,16 @@ class LoadImageFromWebcam(LoadImageFromFile):
             dict: The dict contains loaded image and meta information.
         """
 
-        img = results['img']
+        img = results["img"]
         if self.to_float32:
             img = img.astype(np.float32)
 
-        results['filename'] = None
-        results['ori_filename'] = None
-        results['img'] = img
-        results['img_shape'] = img.shape
-        results['ori_shape'] = img.shape
-        results['img_fields'] = ['img']
+        results["filename"] = None
+        results["ori_filename"] = None
+        results["img"] = img
+        results["img_shape"] = img.shape
+        results["ori_shape"] = img.shape
+        results["img_fields"] = ["img"]
         return results
 
 
@@ -140,10 +143,9 @@ class LoadMultiChannelImageFromFiles:
             Defaults to ``dict(backend='disk')``.
     """
 
-    def __init__(self,
-                 to_float32=False,
-                 color_type='unchanged',
-                 file_client_args=dict(backend='disk')):
+    def __init__(
+        self, to_float32=False, color_type="unchanged", file_client_args=dict(backend="disk")
+    ):
         self.to_float32 = to_float32
         self.color_type = color_type
         self.file_client_args = file_client_args.copy()
@@ -163,13 +165,12 @@ class LoadMultiChannelImageFromFiles:
         if self.file_client is None:
             self.file_client = mmcv.FileClient(**self.file_client_args)
 
-        if results['img_prefix'] is not None:
+        if results["img_prefix"] is not None:
             filename = [
-                osp.join(results['img_prefix'], fname)
-                for fname in results['img_info']['filename']
+                osp.join(results["img_prefix"], fname) for fname in results["img_info"]["filename"]
             ]
         else:
-            filename = results['img_info']['filename']
+            filename = results["img_info"]["filename"]
 
         img = []
         for name in filename:
@@ -179,68 +180,106 @@ class LoadMultiChannelImageFromFiles:
         if self.to_float32:
             img = img.astype(np.float32)
 
-        results['filename'] = filename
-        results['ori_filename'] = results['img_info']['filename']
-        results['img'] = img
-        results['img_shape'] = img.shape
-        results['ori_shape'] = img.shape
+        results["filename"] = filename
+        results["ori_filename"] = results["img_info"]["filename"]
+        results["img"] = img
+        results["img_shape"] = img.shape
+        results["ori_shape"] = img.shape
         # Set initial values for default meta_keys
-        results['pad_shape'] = img.shape
-        results['scale_factor'] = 1.0
+        results["pad_shape"] = img.shape
+        results["scale_factor"] = 1.0
         num_channels = 1 if len(img.shape) < 3 else img.shape[2]
-        results['img_norm_cfg'] = dict(
+        results["img_norm_cfg"] = dict(
             mean=np.zeros(num_channels, dtype=np.float32),
             std=np.ones(num_channels, dtype=np.float32),
-            to_rgb=False)
+            to_rgb=False,
+        )
         return results
 
     def __repr__(self):
-        repr_str = (f'{self.__class__.__name__}('
-                    f'to_float32={self.to_float32}, '
-                    f"color_type='{self.color_type}', "
-                    f'file_client_args={self.file_client_args})')
+        repr_str = (
+            f"{self.__class__.__name__}("
+            f"to_float32={self.to_float32}, "
+            f"color_type='{self.color_type}', "
+            f"file_client_args={self.file_client_args})"
+        )
         return repr_str
 
 
 @PIPELINES.register_module()
-class LoadAnnotations:
-    """Load multiple types of annotations.
+class LoadAnnotations(object):
+    """Load mutiple types of annotations.
 
     Args:
         with_bbox (bool): Whether to parse and load the bbox annotation.
-             Default: True.
+            Default: True.
         with_label (bool): Whether to parse and load the label annotation.
             Default: True.
         with_mask (bool): Whether to parse and load the mask annotation.
-             Default: False.
+            Default: False.
         with_seg (bool): Whether to parse and load the semantic segmentation
             annotation. Default: False.
         poly2mask (bool): Whether to convert the instance masks from polygons
             to bitmaps. Default: True.
-        denorm_bbox (bool): Whether to convert bbox from relative value to
-            absolute value. Only used in OpenImage Dataset.
-            Default: False.
         file_client_args (dict): Arguments to instantiate a FileClient.
             See :class:`mmcv.fileio.FileClient` for details.
             Defaults to ``dict(backend='disk')``.
     """
 
-    def __init__(self,
-                 with_bbox=True,
-                 with_label=True,
-                 with_mask=False,
-                 with_seg=False,
-                 poly2mask=True,
-                 denorm_bbox=False,
-                 file_client_args=dict(backend='disk')):
+    def __init__(
+        self,
+        with_bbox=True,
+        with_label=True,
+        with_mask=False,
+        with_seg=False,
+        with_offset=False,
+        with_height=False,
+        with_height_mask=False,
+        with_nadir_angle=False,
+        with_offset_angle=False,
+        with_rbbox=False,
+        with_edge=False,
+        with_side_face=False,
+        with_offset_field=False,
+        with_roof_bbox=False,
+        with_footprint_bbox=False,
+        with_only_footprint_flag=False,
+        with_semi_supervised_learning=False,
+        with_valid_height_flag=False,
+        with_roof_mask=False,
+        with_footprint_mask=False,
+        with_image_scale_footprint_mask=False,
+        poly2mask=True,
+        file_client_args=dict(backend="disk"),
+    ):
         self.with_bbox = with_bbox
         self.with_label = with_label
         self.with_mask = with_mask
         self.with_seg = with_seg
+        self.with_offset = with_offset
+        self.with_height = with_height
+        self.with_height_mask = with_height_mask
+        self.with_nadir_angle = with_nadir_angle
+        self.with_offset_angle = with_offset_angle
+        self.with_rbbox = with_rbbox
+        self.with_edge = with_edge
+        self.with_side_face = with_side_face
+        self.with_offset_field = with_offset_field
+        self.with_roof_bbox = with_roof_bbox
+        self.with_footprint_bbox = with_footprint_bbox
         self.poly2mask = poly2mask
-        self.denorm_bbox = denorm_bbox
         self.file_client_args = file_client_args.copy()
         self.file_client = None
+        self.with_only_footprint_flag = with_only_footprint_flag
+        self.with_roof_mask = with_roof_mask
+        self.with_footprint_mask = with_footprint_mask
+        self.with_image_scale_footprint_mask = with_image_scale_footprint_mask
+        if self.with_image_scale_footprint_mask:
+            assert self.with_footprint_mask
+        if self.with_height_mask:
+            assert self.with_height and self.with_footprint_mask
+        self.with_semi_supervised_learning = with_semi_supervised_learning
+        self.with_valid_height_flag = with_valid_height_flag
 
     def _load_bboxes(self, results):
         """Private function to load bounding box annotations.
@@ -252,26 +291,28 @@ class LoadAnnotations:
             dict: The dict contains loaded bounding box annotations.
         """
 
-        ann_info = results['ann_info']
-        results['gt_bboxes'] = ann_info['bboxes'].copy()
+        ann_info = results["ann_info"]
+        results["gt_bboxes"] = ann_info["bboxes"].copy()
 
-        if self.denorm_bbox:
-            bbox_num = results['gt_bboxes'].shape[0]
-            if bbox_num != 0:
-                h, w = results['img_shape'][:2]
-                results['gt_bboxes'][:, 0::2] *= w
-                results['gt_bboxes'][:, 1::2] *= h
-
-        gt_bboxes_ignore = ann_info.get('bboxes_ignore', None)
+        gt_bboxes_ignore = ann_info.get("bboxes_ignore", None)
         if gt_bboxes_ignore is not None:
-            results['gt_bboxes_ignore'] = gt_bboxes_ignore.copy()
-            results['bbox_fields'].append('gt_bboxes_ignore')
-        results['bbox_fields'].append('gt_bboxes')
+            results["gt_bboxes_ignore"] = gt_bboxes_ignore.copy()
+            results["bbox_fields"].append("gt_bboxes_ignore")
+        results["bbox_fields"].append("gt_bboxes")
+        return results
 
-        gt_is_group_ofs = ann_info.get('gt_is_group_ofs', None)
-        if gt_is_group_ofs is not None:
-            results['gt_is_group_ofs'] = gt_is_group_ofs.copy()
+    def _load_roof_bboxes(self, results):
+        ann_info = results["ann_info"]
+        results["gt_roof_bboxes"] = ann_info["roof_bboxes"].copy()
 
+        results["bbox_fields"].append("gt_roof_bboxes")
+        return results
+
+    def _load_footprint_bboxes(self, results):
+        ann_info = results["ann_info"]
+        results["gt_footprint_bboxes"] = ann_info["footprint_bboxes"].copy()
+
+        results["bbox_fields"].append("gt_footprint_bboxes")
         return results
 
     def _load_labels(self, results):
@@ -284,7 +325,7 @@ class LoadAnnotations:
             dict: The dict contains loaded label annotations.
         """
 
-        results['gt_labels'] = results['ann_info']['labels'].copy()
+        results["gt_labels"] = results["ann_info"]["labels"].copy()
         return results
 
     def _poly2mask(self, mask_ann, img_h, img_w):
@@ -305,7 +346,7 @@ class LoadAnnotations:
             # we merge all parts into one mask rle code
             rles = maskUtils.frPyObjects(mask_ann, img_h, img_w)
             rle = maskUtils.merge(rles)
-        elif isinstance(mask_ann['counts'], list):
+        elif isinstance(mask_ann["counts"], list):
             # uncompressed RLE
             rle = maskUtils.frPyObjects(mask_ann, img_h, img_w)
         else:
@@ -343,17 +384,68 @@ class LoadAnnotations:
                 :obj:`PolygonMasks`. Otherwise, :obj:`BitmapMasks` is used.
         """
 
-        h, w = results['img_info']['height'], results['img_info']['width']
-        gt_masks = results['ann_info']['masks']
+        h, w = results["img_info"]["height"], results["img_info"]["width"]
+        gt_masks = results["ann_info"]["masks"]
         if self.poly2mask:
-            gt_masks = BitmapMasks(
-                [self._poly2mask(mask, h, w) for mask in gt_masks], h, w)
+            gt_masks = BitmapMasks([self._poly2mask(mask, h, w) for mask in gt_masks], h, w)
         else:
-            gt_masks = PolygonMasks(
-                [self.process_polygons(polygons) for polygons in gt_masks], h,
-                w)
-        results['gt_masks'] = gt_masks
-        results['mask_fields'].append('gt_masks')
+            gt_masks = PolygonMasks(  # pylint: disable=abstract-class-instantiated
+                [self.process_polygons(polygons) for polygons in gt_masks], h, w
+            )
+        results["gt_masks"] = gt_masks
+        results["mask_fields"].append("gt_masks")
+        return results
+
+    def _load_roof_masks(self, results):
+        """Private function to load mask annotations.
+
+        Args:
+            results (dict): Result dict from :obj:`mmdet.CustomDataset`.
+
+        Returns:
+            dict: The dict contains loaded mask annotations.
+                If ``self.poly2mask`` is set ``True``, `gt_mask` will contain
+                :obj:`PolygonMasks`. Otherwise, :obj:`BitmapMasks` is used.
+        """
+
+        h, w = results["img_info"]["height"], results["img_info"]["width"]
+        gt_roof_masks = results["ann_info"]["roof_masks"]
+        if self.poly2mask:
+            gt_roof_masks = BitmapMasks(
+                [self._poly2mask(mask, h, w) for mask in gt_roof_masks], h, w
+            )
+        else:
+            gt_roof_masks = PolygonMasks(  # pylint: disable=abstract-class-instantiated
+                [self.process_polygons(polygons) for polygons in gt_roof_masks], h, w
+            )
+        results["gt_roof_masks"] = gt_roof_masks
+        results["mask_fields"].append("gt_roof_masks")
+        return results
+
+    def _load_footprint_masks(self, results):
+        """Private function to load mask annotations.
+
+        Args:
+            results (dict): Result dict from :obj:`mmdet.CustomDataset`.
+
+        Returns:
+            dict: The dict contains loaded mask annotations.
+                If ``self.poly2mask`` is set ``True``, `gt_mask` will contain
+                :obj:`PolygonMasks`. Otherwise, :obj:`BitmapMasks` is used.
+        """
+
+        h, w = results["img_info"]["height"], results["img_info"]["width"]
+        gt_footprint_polygons = results["ann_info"]["footprint_masks"]
+        if self.poly2mask:
+            gt_footprint_masks = BitmapMasks(
+                [self._poly2mask(mask, h, w) for mask in gt_footprint_polygons], h, w
+            )
+        else:
+            gt_footprint_masks = PolygonMasks(  # pylint: disable=abstract-class-instantiated
+                [self.process_polygons(polygons) for polygons in gt_footprint_polygons], h, w
+            )
+        results["gt_footprint_masks"] = gt_footprint_masks
+        results["mask_fields"].append("gt_footprint_masks")
         return results
 
     def _load_semantic_seg(self, results):
@@ -369,12 +461,234 @@ class LoadAnnotations:
         if self.file_client is None:
             self.file_client = mmcv.FileClient(**self.file_client_args)
 
-        filename = osp.join(results['seg_prefix'],
-                            results['ann_info']['seg_map'])
+        filename = osp.join(results["seg_prefix"], results["ann_info"]["seg_map"])
         img_bytes = self.file_client.get(filename)
-        results['gt_semantic_seg'] = mmcv.imfrombytes(
-            img_bytes, flag='unchanged').squeeze()
-        results['seg_fields'].append('gt_semantic_seg')
+        results["gt_semantic_seg"] = mmcv.imfrombytes(img_bytes, flag="unchanged").squeeze()
+        results["seg_fields"].append("gt_semantic_seg")
+        return results
+
+    def _load_offsets(self, results):
+        """loading offset value
+
+        Args:
+            results (dict): Result dict from :obj:`dataset`.
+
+        Returns:
+            dict: The dict contains loaded offset annotations.
+        """
+        ann_info = results["ann_info"]
+        results["gt_offsets"] = ann_info["offsets"]
+        results["offset_fields"].append("gt_offsets")
+        return results
+
+    def _load_heights(self, results):
+        """loading building height value
+
+        Args:
+            results (dict): Result dict from :obj:`dataset`.
+
+        Returns:
+            dict: The dict contains loaded height annotations.
+        """
+        ann_info = results["ann_info"]
+        results["gt_heights"] = ann_info["building_heights"]
+        results["height_fields"].append("gt_heights")
+        return results
+
+    def _load_height_masks(self, results):
+        """loading building height mask.
+
+        The pixel values inside the footprint area equal to the height value.
+
+        Args:
+            results (dict): Result dict from :obj:`dataset`.
+
+        Returns:
+            dict: The dict contains loaded height mask annotation.
+        """
+        ann_info = results["ann_info"]
+        resolution = ann_info["resolution"]
+
+        gt_heights = results["gt_heights"].astype(np.float32).reshape((-1, 1, 1))
+        gt_height_masks = deepcopy(results["gt_footprint_masks"])
+        gt_height_masks.masks = gt_height_masks.masks.astype(np.float32)
+        gt_height_masks.masks *= gt_heights / resolution
+        gt_height_masks.masks = np.stack([np.sum(gt_height_masks.masks, axis=0)], axis=0)
+        results["gt_height_masks"] = gt_height_masks
+        results["mask_fields"].append("gt_height_masks")
+        results["height_mask_shape"] = ann_info["height_mask_shape"]
+
+        return results
+
+    def _load_image_scale_footprint_masks(self, results):
+        """loading building footprint mask in image scale.
+
+        Args:
+            results (dict): Result dict from :obj:`dataset`.
+
+        Returns:
+            dict: The dict contains loaded height mask annotation.
+        """
+        ann_info = results["ann_info"]
+
+        gt_footprint_masks = deepcopy(results["gt_footprint_masks"])
+        gt_footprint_masks.masks = gt_footprint_masks.masks.astype(np.float32)
+        gt_footprint_masks.masks = np.stack([np.sum(gt_footprint_masks.masks, axis=0)], axis=0)
+        results["gt_image_scale_footprint_masks"] = gt_footprint_masks
+        results["mask_fields"].append("gt_image_scale_footprint_masks")
+        results["image_scale_footprint_mask_shape"] = ann_info["image_scale_footprint_mask_shape"]
+
+        return results
+
+    def _load_nadir_angle(self, results):
+        """loading nadir angle value
+
+        Args:
+            results (dict): Result dict from :obj:`dataset`.
+
+        Returns:
+            dict: The dict contains loaded angle annotations.
+        """
+        ann_info = results["ann_info"]
+        results["gt_nadir_angles"] = ann_info["nadir_angles"]
+        return results
+
+    def _load_offset_angle(self, results):
+        """loading offset angle value
+
+        Args:
+            results (dict): Result dict from :obj:`dataset`.
+
+        Returns:
+            dict: The dict contains loaded offset angle annotations.
+        """
+        ann_info = results["ann_info"]
+        results["gt_offset_angles"] = ann_info["offset_angles"]
+        results["angle_fields"].append("gt_offset_angles")
+        return results
+
+    def _load_only_footprint_flag(self, results):
+        """loading footprint flag which used in semi-supervised learning framework
+
+        Args:
+            results (dict): Result dict from :obj:`dataset`.
+
+        Returns:
+            dict: The dict contains loaded footprint flag annotations.
+        """
+        ann_info = results["ann_info"]
+        results["gt_only_footprint_flag"] = ann_info["only_footprint_flag"]
+        return results
+
+    def _load_semi_supervised_sample_flag(self, results):
+        """loading semi_supervised sample flag which used in semi-supervised learning framework
+
+        Args:
+            results (dict): Result dict from :obj:`dataset`.
+
+        Returns:
+            dict: The dict contains loaded semi-supervised flag annotations.
+        """
+        ann_info = results["ann_info"]
+        results["gt_is_semi_supervised_sample"] = ann_info["is_semi_supervised_sample"]
+        return results
+
+    def _load_valid_height_flag(self, results):
+        """loading valid height sample flag which used in semi-supervised learning framework
+
+        Args:
+            results (dict): Result dict from :obj:`dataset`.
+
+        Returns:
+            dict: The dict contains valid height flag annotations.
+        """
+        ann_info = results["ann_info"]
+        results["gt_is_valid_height_sample"] = ann_info["is_valid_height_sample"]
+        return results
+
+    def _load_rbboxes(self, results):
+        ann_info = results["ann_info"]
+        results["gt_rbboxes"] = ann_info["rbboxes"]
+        results["rbbox_fields"].append("gt_rbboxes")
+        return results
+
+    def _load_edge_map(self, results):
+        """loading the edge map which generated by weijia
+
+        Args:
+            results (dict): Result dict from :obj:`dataset`.
+
+        Returns:
+            dict: The dict contains loaded edge map annotations.
+        """
+        if self.file_client is None:
+            self.file_client = mmcv.FileClient(**self.file_client_args)
+
+        filename = osp.join(results["edge_prefix"], results["ann_info"]["edge_map"])
+        img_bytes = self.file_client.get(filename)
+        edge_maps = mmcv.imfrombytes(img_bytes, flag="unchanged").squeeze()
+
+        h, w = results["img_info"]["height"], results["img_info"]["width"]
+        mask_num = len(results["ann_info"]["masks"])
+        gt_edge_maps = BitmapMasks([edge_maps for _ in range(mask_num)], h, w)
+
+        results["gt_edge_maps"] = gt_edge_maps
+        results["edge_fields"].append("gt_edge_maps")
+        return results
+
+    def _load_side_face_map(self, results):
+        """loading side face map
+
+        Args:
+            results (dict): Result dict from :obj:`dataset`.
+
+        Returns:
+            dict: The dict contains loaded side face map annotations.
+        """
+        if self.file_client is None:
+            self.file_client = mmcv.FileClient(**self.file_client_args)
+
+        filename = osp.join(results["side_face_prefix"], results["ann_info"]["side_face_map"])
+        img_bytes = self.file_client.get(filename)
+        side_face_maps = mmcv.imfrombytes(img_bytes, flag="unchanged").squeeze()
+
+        h, w = results["img_info"]["height"], results["img_info"]["width"]
+        mask_num = len(results["ann_info"]["masks"])
+        gt_side_face_maps = BitmapMasks([side_face_maps for _ in range(mask_num)], h, w)
+
+        results["gt_side_face_maps"] = gt_side_face_maps
+        results["side_face_fields"].append("gt_side_face_maps")
+        return results
+
+    def _load_offset_field(self, results):
+        """loading offset field map which generated by weijia and lingxuan
+
+        Args:
+            results (dict): Result dict from :obj:`dataset`.
+
+        Returns:
+            dict: The dict contains loaded offset field annotations.
+        """
+        if self.file_client is None:
+            self.file_client = mmcv.FileClient(**self.file_client_args)
+
+        filename = osp.join(results["offset_field_prefix"], results["ann_info"]["offset_field"])
+
+        gt_offset_field = np.load(filename).astype(np.float32)
+
+        ignores_x, ignores_y = [], []
+        for subclass in [400, 500]:
+            ignores_x.append(gt_offset_field[..., 0] == subclass)
+            ignores_y.append(gt_offset_field[..., 1] == subclass)
+
+        ignore_x_bool = np.logical_or.reduce(tuple(ignores_x))
+        ignore_y_bool = np.logical_or.reduce(tuple(ignores_y))
+
+        gt_offset_field[..., 0][ignore_x_bool] = 0.0
+        gt_offset_field[..., 1][ignore_y_bool] = 0.0
+
+        results["gt_offset_field"] = gt_offset_field
+        results["offset_field_fields"].append("gt_offset_field")
         return results
 
     def __call__(self, results):
@@ -398,16 +712,50 @@ class LoadAnnotations:
             results = self._load_masks(results)
         if self.with_seg:
             results = self._load_semantic_seg(results)
+        if self.with_offset:
+            results = self._load_offsets(results)
+        if self.with_height:
+            results = self._load_heights(results)
+        if self.with_nadir_angle:
+            results = self._load_nadir_angle(results)
+        if self.with_offset_angle:
+            results = self._load_offset_angle(results)
+        if self.with_rbbox:
+            results = self._load_rbboxes(results)
+        if self.with_edge:
+            results = self._load_edge_map(results)
+        if self.with_side_face:
+            results = self._load_side_face_map(results)
+        if self.with_roof_bbox:
+            results = self._load_roof_bboxes(results)
+        if self.with_footprint_bbox:
+            results = self._load_footprint_bboxes(results)
+        if self.with_offset_field:
+            results = self._load_offset_field(results)
+        if self.with_only_footprint_flag:
+            results = self._load_only_footprint_flag(results)
+        if self.with_semi_supervised_learning:
+            results = self._load_semi_supervised_sample_flag(results)
+        if self.with_valid_height_flag:
+            results = self._load_valid_height_flag(results)
+        if self.with_roof_mask:
+            results = self._load_roof_masks(results)
+        if self.with_footprint_mask:
+            results = self._load_footprint_masks(results)
+        if self.with_image_scale_footprint_mask:
+            results = self._load_image_scale_footprint_masks(results)
+        if self.with_height_mask:
+            results = self._load_height_masks(results)
         return results
 
     def __repr__(self):
         repr_str = self.__class__.__name__
-        repr_str += f'(with_bbox={self.with_bbox}, '
-        repr_str += f'with_label={self.with_label}, '
-        repr_str += f'with_mask={self.with_mask}, '
-        repr_str += f'with_seg={self.with_seg}, '
-        repr_str += f'poly2mask={self.poly2mask}, '
-        repr_str += f'file_client_args={self.file_client_args})'
+        repr_str += f"(with_bbox={self.with_bbox}, "
+        repr_str += f"with_label={self.with_label}, "
+        repr_str += f"with_mask={self.with_mask}, "
+        repr_str += f"with_seg={self.with_seg})"
+        repr_str += f"poly2mask={self.poly2mask})"
+        repr_str += f"poly2mask={self.file_client_args})"
         return repr_str
 
 
@@ -429,17 +777,20 @@ class LoadPanopticAnnotations(LoadAnnotations):
             Defaults to ``dict(backend='disk')``.
     """
 
-    def __init__(self,
-                 with_bbox=True,
-                 with_label=True,
-                 with_mask=True,
-                 with_seg=True,
-                 file_client_args=dict(backend='disk')):
+    def __init__(
+        self,
+        with_bbox=True,
+        with_label=True,
+        with_mask=True,
+        with_seg=True,
+        file_client_args=dict(backend="disk"),
+    ):
         if rgb2id is None:
             raise RuntimeError(
-                'panopticapi is not installed, please install it by: '
-                'pip install git+https://github.com/cocodataset/'
-                'panopticapi.git.')
+                "panopticapi is not installed, please install it by: "
+                "pip install git+https://github.com/cocodataset/"
+                "panopticapi.git."
+            )
 
         super(LoadPanopticAnnotations, self).__init__(
             with_bbox=with_bbox,
@@ -448,7 +799,8 @@ class LoadPanopticAnnotations(LoadAnnotations):
             with_seg=with_seg,
             poly2mask=True,
             denorm_bbox=False,
-            file_client_args=file_client_args)
+            file_client_args=file_client_args,
+        )
 
     def _load_masks_and_semantic_segs(self, results):
         """Private function to load mask and semantic segmentation annotations.
@@ -468,33 +820,31 @@ class LoadPanopticAnnotations(LoadAnnotations):
         if self.file_client is None:
             self.file_client = mmcv.FileClient(**self.file_client_args)
 
-        filename = osp.join(results['seg_prefix'],
-                            results['ann_info']['seg_map'])
+        filename = osp.join(results["seg_prefix"], results["ann_info"]["seg_map"])
         img_bytes = self.file_client.get(filename)
-        pan_png = mmcv.imfrombytes(
-            img_bytes, flag='color', channel_order='rgb').squeeze()
+        pan_png = mmcv.imfrombytes(img_bytes, flag="color", channel_order="rgb").squeeze()
         pan_png = rgb2id(pan_png)
 
         gt_masks = []
         gt_seg = np.zeros_like(pan_png) + 255  # 255 as ignore
 
-        for mask_info in results['ann_info']['masks']:
-            mask = (pan_png == mask_info['id'])
-            gt_seg = np.where(mask, mask_info['category'], gt_seg)
+        for mask_info in results["ann_info"]["masks"]:
+            mask = pan_png == mask_info["id"]
+            gt_seg = np.where(mask, mask_info["category"], gt_seg)
 
             # The legal thing masks
-            if mask_info.get('is_thing'):
+            if mask_info.get("is_thing"):
                 gt_masks.append(mask.astype(np.uint8))
 
         if self.with_mask:
-            h, w = results['img_info']['height'], results['img_info']['width']
+            h, w = results["img_info"]["height"], results["img_info"]["width"]
             gt_masks = BitmapMasks(gt_masks, h, w)
-            results['gt_masks'] = gt_masks
-            results['mask_fields'].append('gt_masks')
+            results["gt_masks"] = gt_masks
+            results["mask_fields"].append("gt_masks")
 
         if self.with_seg:
-            results['gt_semantic_seg'] = gt_seg
-            results['seg_fields'].append('gt_semantic_seg')
+            results["gt_semantic_seg"] = gt_seg
+            results["seg_fields"].append("gt_semantic_seg")
         return results
 
     def __call__(self, results):
@@ -546,25 +896,24 @@ class LoadProposals:
             dict: The dict contains loaded proposal annotations.
         """
 
-        proposals = results['proposals']
+        proposals = results["proposals"]
         if proposals.shape[1] not in (4, 5):
             raise AssertionError(
-                'proposals should have shapes (n, 4) or (n, 5), '
-                f'but found {proposals.shape}')
+                "proposals should have shapes (n, 4) or (n, 5), " f"but found {proposals.shape}"
+            )
         proposals = proposals[:, :4]
 
         if self.num_max_proposals is not None:
-            proposals = proposals[:self.num_max_proposals]
+            proposals = proposals[: self.num_max_proposals]
 
         if len(proposals) == 0:
             proposals = np.array([[0, 0, 0, 0]], dtype=np.float32)
-        results['proposals'] = proposals
-        results['bbox_fields'].append('proposals')
+        results["proposals"] = proposals
+        results["bbox_fields"].append("proposals")
         return results
 
     def __repr__(self):
-        return self.__class__.__name__ + \
-            f'(num_max_proposals={self.num_max_proposals})'
+        return self.__class__.__name__ + f"(num_max_proposals={self.num_max_proposals})"
 
 
 @PIPELINES.register_module()
@@ -584,13 +933,15 @@ class FilterAnnotations:
             becomes an empty bbox after filtering. Default: True
     """
 
-    def __init__(self,
-                 min_gt_bbox_wh=(1., 1.),
-                 min_gt_mask_area=1,
-                 by_box=True,
-                 by_mask=False,
-                 keep_empty=True):
-        # TODO: add more filter options
+    def __init__(
+        self,
+        min_gt_bbox_wh=(1.0, 1.0),
+        min_gt_mask_area=1,
+        by_box=True,
+        by_mask=False,
+        keep_empty=True,
+    ):
+        # TOD: add more filter options
         assert by_box or by_mask
         self.min_gt_bbox_wh = min_gt_bbox_wh
         self.min_gt_mask_area = min_gt_mask_area
@@ -600,12 +951,12 @@ class FilterAnnotations:
 
     def __call__(self, results):
         if self.by_box:
-            assert 'gt_bboxes' in results
-            gt_bboxes = results['gt_bboxes']
+            assert "gt_bboxes" in results
+            gt_bboxes = results["gt_bboxes"]
             instance_num = gt_bboxes.shape[0]
         if self.by_mask:
-            assert 'gt_masks' in results
-            gt_masks = results['gt_masks']
+            assert "gt_masks" in results
+            gt_masks = results["gt_masks"]
             instance_num = len(gt_masks)
 
         if instance_num == 0:
@@ -615,10 +966,9 @@ class FilterAnnotations:
         if self.by_box:
             w = gt_bboxes[:, 2] - gt_bboxes[:, 0]
             h = gt_bboxes[:, 3] - gt_bboxes[:, 1]
-            tests.append((w > self.min_gt_bbox_wh[0])
-                         & (h > self.min_gt_bbox_wh[1]))
+            tests.append((w > self.min_gt_bbox_wh[0]) & (h > self.min_gt_bbox_wh[1]))
         if self.by_mask:
-            gt_masks = results['gt_masks']
+            gt_masks = results["gt_masks"]
             tests.append(gt_masks.areas >= self.min_gt_mask_area)
 
         keep = tests[0]
@@ -627,7 +977,7 @@ class FilterAnnotations:
 
         keep = keep.nonzero()[0]
 
-        keys = ('gt_bboxes', 'gt_labels', 'gt_masks')
+        keys = ("gt_bboxes", "gt_labels", "gt_masks")
         for key in keys:
             if key in results:
                 results[key] = results[key][keep]
@@ -637,9 +987,10 @@ class FilterAnnotations:
         return results
 
     def __repr__(self):
-        return self.__class__.__name__ + \
-            f'(min_gt_bbox_wh={self.min_gt_bbox_wh},' \
-            f'min_gt_mask_area={self.min_gt_mask_area},' \
-            f'by_box={self.by_box},' \
-            f'by_mask={self.by_mask},' \
-            f'always_keep={self.always_keep})'
+        return (
+            self.__class__.__name__ + f"(min_gt_bbox_wh={self.min_gt_bbox_wh},"
+            f"min_gt_mask_area={self.min_gt_mask_area},"
+            f"by_box={self.by_box},"
+            f"by_mask={self.by_mask},"
+            f"always_keep={self.always_keep})"
+        )
