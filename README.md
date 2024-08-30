@@ -65,13 +65,13 @@ cd MLS-BRN/
 # train
 ./tools/dist_train.sh loft_foahfm_ssl loft_foahfm_r50_fpn_2x_bonai_ssl
 # resume training from a checkpoint
-./tools/dist_train.sh loft_foahfm loft_foahfm_r50_fpn_2x_bonai --resume-from='path to checkpoint'
+./tools/dist_train.sh loft_foahfm_ssl loft_foahfm_r50_fpn_2x_bonai_ssl --resume-from='path to checkpoint'
 # test & evaluate, <timestamp> refers to the timestamp of the training results folder in ./work_dirs/
 ./tools/dist_test.sh loft_foahfm_r50_fpn_2x_bonai_ssl <timestamp>
 
 # for slurm system
 # train
-./tools/slurm_train.sh loft_foahfm loft_foahfm_r50_fpn_2x_bonai
+./tools/slurm_train.sh loft_foahfm_ssl loft_foahfm_r50_fpn_2x_bonai_ssl
 # test & evaluate 
 ./tools/slurm_test.sh loft_foahfm_r50_fpn_2x_bonai_ssl <timestamp>
 ```
