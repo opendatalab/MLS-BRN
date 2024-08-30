@@ -47,4 +47,4 @@ srun -p ${PARTITION} \
     ${SRUN_ARGS} \
     python -u tools/bonai/bonai_evaluation.py ${EVAL_PY_ARGS}
 # ==================== The command to call this shell script ====================
-# ./tools/slurm_test.sh loft_foahfm_r50_fpn_2x_bonai_ssl <time> <node>
+# ./tools/slurm_test.sh loft_foahfm_r50_fpn_2x_bonai_ssl <timestamp>

@@ -34,4 +34,4 @@ srun -p ${PARTITION} \
     python -u tools/train.py --config=${CONFIG_FILE} --work-dir=${JOB_DIR} --launcher="slurm" ${PY_ARGS} --no-validate
 
 # ==================== The command to call this shell script ====================
-# ./tools/slurm_train.sh loft_foahfm loft_foahfm_r50_fpn_2x_bonai
+# ./tools/slurm_train.sh loft_foahfm_ssl loft_foahfm_r50_fpn_2x_bonai_ssl
