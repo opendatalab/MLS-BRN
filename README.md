@@ -9,7 +9,7 @@
 
 ## 📜 Introduction
 
-This repository contains the official codes for MLS-BRN (CVPR 2024), our multi-level supervised building reconstruction network that can flexibly utilize training samples with different annotation levels.
+This repository contains the official codes for MLS-BRN (CVPR 2024), a Multi-Level Supervised Building Reconstruction Network that can flexibly utilize training samples with different annotation levels.
 
 - We design MLS-BRN, a multi-level supervised building reconstruction network, which consists of new tasks and modules to enhance the relation between different components of a building instance and alleviate the demand on 3D annotations.
 - We propose a multi-level training strategy that enables the training of MLS-BRN with different supervision levels to further improve the 3D reconstruction performance.
@@ -49,13 +49,16 @@ python setup.py develop
 
 ## ⬇️Data Preparation
 
-Please download [BONAI](https://github.com/jwwangchn/BONAI/tree/master) and our proposed [dataset](https://opendatalab.com/OpenDataLab/MLS-BRN)，then put the datasets into one directory and specify the directory as `data_root` variable in `configs/_base_/datasets/bonai_instance_hfm_ssl.py`.
+Please download [BONAI](https://github.com/jwwangchn/BONAI/tree/master) and our proposed [dataset](https://opendatalab.com/OpenDataLab/MLS-BRN)，then put the datasets into one directory and specify the directory as `data_root` variable in `configs/_base_/datasets/bonai_instance_hfm_ssl.py`. To prepare the required CSV files for evaluation, you can convert the original JSON annotations using the script `tools/bonai/transform_gt_to_csv.py`.
+
 
 ## 🔥Train & Test
 
 The config files are defined in ``configs/_base_/models/bonai_loft_foahfm_r50_fpn_basic.py`` and `configs/_base_/schedules/schedule_2x_bonai.py`. We provide shell scripts for training and test in `tools/`.
 
 To train or test the model in different environments, modify the given shell script and config files accordingly.
+
+The checkpoint of our MLS-BRN training on BONAI dataset are released at [Google Drive](https://drive.google.com/drive/folders/1oqwhDKPXZkDj0OHVPurEOkZOUZV1URdD?usp=sharing).
 
 Note: you need to specify the dataset as `CITY` variable in `tools/dist_test.sh` when testing.
 
